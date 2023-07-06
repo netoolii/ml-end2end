@@ -1,0 +1,15 @@
+numpy==1.21.6
+scipy==1.7.3
+
+#ws
+Flask==2.1.2
+gunicorn==19.9.0
+Flask-Injector==0.13.0
+flask-restx==0.5.1
+werkzeug==2.1.2
+
+
+#extra
+# grpcio==1.29.0
+# redis==3.3.8
+# protobuf==3.17.1
