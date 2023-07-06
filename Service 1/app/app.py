@@ -1,11 +1,13 @@
 from flask import Flask
 from apis.health_check import health_check_bp
+from apis.classifier_v1 import classifier_v1_bp
 import traceback
 from werkzeug.exceptions import NotFound
 
 
 app = Flask(__name__)
 app.register_blueprint(health_check_bp)
+app.register_blueprint(classifier_v1_bp)
 
 
 @app.errorhandler(NotFound)
