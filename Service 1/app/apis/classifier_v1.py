@@ -1,7 +1,9 @@
 from flask import Blueprint
 from flask_restx import Api, Resource, fields, reqparse
+from injector import Injector
+from handlers.classifier import ClassifierHandler
+from helpers.validation import text_validation
 import time
-
 
 API_VERSION = "v1"
 
@@ -15,7 +17,7 @@ classifier_v1 = Api(
 
 classifier_resource = classifier_v1.parser()
 classifier_resource.add_argument(
-    "text", dest="text", required=True, type=str, help="Text to classifier the emotion"
+    "text", dest="text", required=True, type=text_validation(min_length=10), help="Text to classifier the emotion"
 )
 
 classifier_response = classifier_v1.model(
@@ -41,11 +43,9 @@ class Classifier(Resource):
     def post(self):
         start_date = time.time()
         args = classifier_resource.parse_args(strict=True)
-
+        classifier_handler = Injector().get(ClassifierHandler)
+        classifier_handler.predictions(args)
         end_date = time.time() - start_date
         print(end_date)
 
-        return {
-            "categories": [],
-            "accuracies": []
-        }, 200
+        return {"categories": [], "accuracies": []}, 200
