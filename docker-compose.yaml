@@ -12,5 +12,29 @@ services:
     networks:
       - services-network
 
+  db:
+    image: postgres:14.5
+    restart: always
+    container_name: database
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: mlend2end
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - services-network
+
+volumes:
+  pgdata:
+
 networks:
   services-network:
+
+
+

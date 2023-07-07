@@ -4,11 +4,11 @@ ENV LANG C.UTF-8
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+RUN pip install -U pip setuptools
+
 COPY ./app/requirements.txt app/requirements.txt
 
 WORKDIR /app
-
-RUN pip install -U pip setuptools
 
 RUN pip install -r requirements.txt
 
