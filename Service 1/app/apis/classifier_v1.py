@@ -17,7 +17,11 @@ classifier_v1 = Api(
 
 classifier_resource = classifier_v1.parser()
 classifier_resource.add_argument(
-    "text", dest="text", required=True, type=text_validation(min_length=10), help="Text to classifier the emotion"
+    "text",
+    dest="text",
+    required=True,
+    type=text_validation(min_length=10),
+    help="Text to classifier the emotion",
 )
 
 classifier_response = classifier_v1.model(
