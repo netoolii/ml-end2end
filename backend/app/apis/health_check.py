@@ -1,7 +1,6 @@
 from flask import Blueprint
 
 
-
 hc_bp = Blueprint("Health Check", __name__)
 
 

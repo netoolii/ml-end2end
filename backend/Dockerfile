@@ -5,7 +5,10 @@ ENV LANG C.UTF-8
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-RUN apt-get update
+RUN apt-get update && \
+    apt-get install -y \
+        libmariadb-dev \
+        gcc
 
 RUN pip install -U pip setuptools
 

@@ -4,17 +4,25 @@ from werkzeug.exceptions import NotFound
 import traceback
 # app import
 from apis.health_check import hc_bp
+from apis.auth import auth_bp
+from helpers.db_connect import DBConnect
+from database import db
 
 
 app = Flask(__name__)
 
+app.config['SECRET_KEY'] = "frase_super_complexa_dificil_de_saber_pastel"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = DBConnect.get_connection_string()
+
+db.init_app(app)
 
 app.register_blueprint(hc_bp)
+app.register_blueprint(auth_bp)
 
 @app.errorhandler(NotFound)
 def handle_exception(error):
     return "Not Found", 404
-
 
 
 @app.errorhandler(Exception)
