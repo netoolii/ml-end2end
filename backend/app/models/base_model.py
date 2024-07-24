@@ -1,7 +1,7 @@
 class BaseModel():
 
     def to_json(self):
-        attributes = vars(self)
+        attributes = dict(vars(self))
         if attributes.get('password') is not None:
             attributes.pop('password')
         if attributes.get('_sa_instance_state') is not None:
