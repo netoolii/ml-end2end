@@ -6,6 +6,7 @@ import traceback
 from apis.health_check import hc_bp
 from apis.auth import auth_bp
 from apis.conversation import conversation_bp
+from apis.posts import posts_bp
 from helpers.db_connect import DBConnect
 from database import db
 
@@ -21,6 +22,7 @@ db.init_app(app)
 app.register_blueprint(hc_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(conversation_bp)
+app.register_blueprint(posts_bp)
 
 
 @app.errorhandler(NotFound)
