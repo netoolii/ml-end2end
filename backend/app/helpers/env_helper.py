@@ -15,3 +15,11 @@ def get_db_user():
 
 def get_db_password():
     return os.environ.get("DB_PASSWORD", "password")
+
+
+def get_ollama_host():
+    return os.environ.get("OLLAMA_HOST", "ollama")
+
+
+def get_ollama_port():
+    return os.environ.get("OLLAMA_PORT", "11434")

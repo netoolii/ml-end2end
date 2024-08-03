@@ -32,7 +32,8 @@ class Posts(Resource):
                 get_user_chat(_posts.get("prompt", "")))
             session['current_conversation_context'].append(
                 get_assistant_chat(_posts.get("body", "")))
-            return {"message": "successfully registered"}, 201
+            return {"message": "successfully registered",
+                    'data': _posts}, 201
         return {'message': 'unable to create', 'data': {}}, 500
 
     def get(self):

@@ -16,4 +16,4 @@ docker build . -t backend:"${TAG}" --rm
 sleep 5
 
 echo "Running backend container"
-docker run -v "./app:/app" -p 8080:8080 --name backend  --rm backend:"${TAG}"
+docker run -v "./app:/app" -p 8080:8080 --name backend --net=services-network --rm backend:"${TAG}"

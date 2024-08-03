@@ -1,5 +1,6 @@
 from models.posts import Posts
 from database import db
+from clients.tinyllama import TinyLlama
 from flask import current_app
 
 
@@ -7,7 +8,7 @@ class PostsHandler:
 
     def create(conversation, prompt="", context=[]):
 
-        body = "ANSWER FAKE !!"
+        body = TinyLlama(context=context).request(prompt)
         posts = Posts(prompt=prompt,
                       conversation_id=conversation.get('id', None),
                       body=body)

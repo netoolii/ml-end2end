@@ -6,7 +6,8 @@ from flask import current_app
 class ConversationHandler:
 
     def create(user):
-        conversation = Conversation(status='online', user_id=user.get('id', None))
+        conversation = Conversation(status='online',
+                                    user_id=user.get('id', None))
         try:
             db.session.add(conversation)
             db.session.commit()
@@ -36,7 +37,8 @@ class ConversationHandler:
                 conversation.status = 'deleted'
                 db.session.commit()
                 return conversation
-            current_app.logger.critical("trying to delete a conversation from different user", exc_info=True)
+            current_app.logger.critical("""trying to delete a conversation
+                                        from different user""", exc_info=True)
         except Exception as e:
             current_app.logger.critical(str(e), exc_info=True)
         return None
