@@ -2,6 +2,7 @@
 from flask import Flask
 from werkzeug.exceptions import NotFound
 import traceback
+from flask_cors import CORS
 # app import
 from apis.health_check import hc_bp
 from apis.auth import auth_bp
@@ -13,6 +14,10 @@ from database import db
 
 
 app = Flask(__name__)
+
+CORS(app,
+     resources={r"/*": {"origins": "http://localhost:3000"}},
+     supports_credentials=True)
 
 app.config['SECRET_KEY'] = "frase_super_complexa_dificil_de_saber_pastel"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
