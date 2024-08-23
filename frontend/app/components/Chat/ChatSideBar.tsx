@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useContext } from 'react'
+import React, { useContext, useEffect } from 'react'
 import { Box, Flex, IconButton, ScrollArea, Text } from '@radix-ui/themes'
 import cs from 'classnames'
 import { AiOutlineCloseCircle } from 'react-icons/ai'
@@ -11,6 +11,9 @@ import ChatContext from './chatContext'
 
 import './index.scss'
 
+
+
+
 export const ChatSideBar = () => {
   const {
     currentChatRef,
@@ -20,8 +23,36 @@ export const ChatSideBar = () => {
     onDeleteChat,
     onChangeChat,
     onCreateChat,
-    onOpenPersonaPanel
+    onOpenPersonaPanel,
+    user,
+    onDeleteUser,
   } = useContext(ChatContext)
+
+
+  useEffect(() => {
+    
+  }, [user])
+
+  const auth = function(){
+    if (user) {
+      console.log(user, "está logado")
+      const apiUrl = `http://${process.env.BACKEND_HOST}:${process.env.BACKEND_PORT}/${process.env.BACKEND_PATH_AUTH_LOGOUT}`
+      fetch(apiUrl, {
+        headers: {
+          'User-Agent': 'frontend/1.0.0'
+        },
+        method: 'POST',
+        credentials: 'include',
+      })
+      .then(() => {
+        onDeleteUser?.()
+        console.error('user logout')
+      })
+      .catch(err => console.error('error:' + err));
+    }
+    onOpenPersonaPanel?.('chat')
+
+  }
 
   return (
     <Flex direction="column" className={cs('chart-side-bar', { show: toggleSidebar })}>
@@ -70,11 +101,11 @@ export const ChatSideBar = () => {
         </ScrollArea>
         <Box
           width="auto"
-          onClick={() => onOpenPersonaPanel?.('chat')}
+          onClick={auth}
           className="bg-token-surface-primary active:scale-95 cursor-pointer"
         >
           <RiRobot2Line className="size-4" />
-          <Text>Persona Store</Text>
+          <Text>{user? "Logout": "Login"} </Text>
         </Box>
       </Flex>
     </Flex>

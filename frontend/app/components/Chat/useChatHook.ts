@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { v4 as uuid } from 'uuid'
 import { ChatGPInstance } from './Chat'
-import { Chat, ChatMessage, Persona } from './interface'
+import { Chat, ChatMessage, Persona, User } from './interface'
 
 export const DefaultPersonas: Persona[] = [
   {
@@ -64,6 +64,8 @@ const useChatHook = () => {
   const [chatList, setChatList] = useState<Chat[]>([])
 
   const [personas, setPersonas] = useState<Persona[]>([])
+
+  const [user, setUser] = useState<User | undefined>(undefined)
 
   const [editPersona, setEditPersona] = useState<Persona | undefined>()
 
@@ -197,6 +199,20 @@ const useChatHook = () => {
     }
   }
 
+  const onCreateUser = async (values: any) => {
+
+    const user: User = {
+      id: values.id,
+      username: values.username,
+      isLogged: true,
+    }
+    setUser(user)
+  }
+
+  const onDeleteUser = async () => {
+    setUser(undefined)
+  }
+
   useEffect(() => {
     const chatList = (JSON.parse(localStorage.getItem(StorageKeys.Chat_List) || '[]') ||
       []) as Chat[]
@@ -247,6 +263,10 @@ const useChatHook = () => {
   }, [personas])
 
   useEffect(() => {
+    localStorage.setItem('User', JSON.stringify(user))
+  }, [user])
+
+  useEffect(() => {
     if (isInit && !openPersonaPanel && chatList.length === 0) {
       onCreateChat(DefaultPersonas[0])
     }
@@ -278,7 +298,10 @@ const useChatHook = () => {
     onOpenPersonaPanel,
     onClosePersonaPanel,
     onToggleSidebar,
-    forceUpdate
+    forceUpdate,
+    onCreateUser,
+    user,
+    onDeleteUser
   }
 }
 

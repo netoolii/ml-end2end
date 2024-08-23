@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, MutableRefObject } from 'react'
-import { Chat, ChatMessage, Persona } from './interface'
+import { Chat, ChatMessage, Persona, User } from './interface'
 
 const ChatContext = createContext<{
   debug?: boolean
@@ -29,6 +29,9 @@ const ChatContext = createContext<{
   onClosePersonaPanel?: () => void
   onToggleSidebar?: () => void
   forceUpdate?: () => void
+  onCreateUser?: (user: User) => void
+  onDeleteUser?: () => void
+  user?: User
 }>({
   personaPanelType: 'chat',
   DefaultPersonas: [],

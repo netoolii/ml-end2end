@@ -1,63 +1,66 @@
 'use client'
 
-import React, { useCallback, useContext, useEffect, useState } from 'react'
-import { MagnifyingGlassIcon } from '@radix-ui/react-icons'
+import React, { useContext, useState } from 'react'
+import { FaceIcon, LockClosedIcon, CheckCircledIcon } from '@radix-ui/react-icons'
 import {
-  Box,
   Button,
   Container,
   Flex,
   Heading,
   IconButton,
-  ScrollArea,
-  Text,
   TextField
 } from '@radix-ui/themes'
-import { debounce } from 'lodash-es'
-import { AiOutlineClose, AiOutlineDelete, AiOutlineEdit } from 'react-icons/ai'
-import { LuMessageSquarePlus } from 'react-icons/lu'
-import { ChatContext, Persona } from '@/components'
+import { AiOutlineClose } from 'react-icons/ai'
+import { ChatContext} from '@/components'
 
 export interface PersonaPanelProps {}
 
 const PersonaPanel = (_props: PersonaPanelProps) => {
   const {
-    personaPanelType,
-    DefaultPersonas,
-    personas,
     openPersonaPanel,
-    onDeletePersona,
-    onEditPersona,
-    onCreateChat,
-    onOpenPersonaModal,
-    onClosePersonaPanel
+    onClosePersonaPanel,
+    onCreateUser,
   } = useContext(ChatContext)
 
-  const [promptList, setPromptList] = useState<Persona[]>([])
-  const [searchText, setSearchText] = useState('')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
 
-  const handleSearch = useCallback(
-    debounce((type: string, list: Persona[], searchText: string) => {
-      setPromptList(
-        list.filter((item) => {
-          if (type === 'chat') {
-            return (
-              !item.key && (item.prompt?.includes(searchText) || item.name?.includes(searchText))
-            )
-          } else {
-            return (
-              item.key && (item.prompt?.includes(searchText) || item.name?.includes(searchText))
-            )
-          }
+  const loginBtn = async function(){
+
+    if(username.length > 0 && password.length >0){
+
+      
+      const apiUrl = `http://${process.env.BACKEND_HOST}:${process.env.BACKEND_PORT}/${process.env.BACKEND_PATH_AUTH_LOGIN}`
+      const res = await fetch(apiUrl, {
+        headers: {
+          "Content-Type": "application/json",
+          'User-Agent': 'frontend/1.0.0'
+        },
+        method: 'POST',
+        credentials: 'include',
+        body: JSON.stringify({
+          username: username,
+          password: password,
         })
-      )
-    }, 350),
-    []
-  )
+      })
 
-  useEffect(() => {
-    handleSearch(personaPanelType, [...DefaultPersonas, ...personas], searchText)
-  }, [personaPanelType, searchText, DefaultPersonas, personas, handleSearch])
+      if (res.status == 200) {
+        const responseBody =  await res.text()
+        const jsonResponse = JSON.parse(responseBody)
+        onCreateUser?.(jsonResponse.user)
+        onClosePersonaPanel?.()
+        setUsername("")
+        setPassword("")
+      }else{
+        const statusText = res.statusText
+        const responseBody =  await res.text()
+        console.error(`API response error: ${responseBody}`)
+        throw new Error(
+          `The  API has encountered an error with a status code of ${res.status} ${statusText}: ${responseBody}`
+        )
+      }
+    }
+  }
 
   return openPersonaPanel ? (
     <Flex
@@ -74,7 +77,7 @@ const PersonaPanel = (_props: PersonaPanelProps) => {
         px="4"
         style={{ backgroundColor: 'var(--gray-a2)' }}
       >
-        <Heading size="4">Persona Store </Heading>
+        <Heading size="4">Login </Heading>
         <IconButton
           size="2"
           variant="ghost"
@@ -86,83 +89,37 @@ const PersonaPanel = (_props: PersonaPanelProps) => {
         </IconButton>
       </Flex>
       <Container size="3" className="grow-0 px-4">
-        <Flex gap="4" py="5">
-          <TextField.Root size="3" className="flex-1" radius="large">
+          <Flex gap="4" py="5">
+            <TextField.Root size="3" className="flex-1" radius="large">
+              <TextField.Slot>
+                <FaceIcon height="16" width="16" />
+              </TextField.Slot>
+              <TextField.Input
+                className="flex-1"
+                placeholder="username"
+                onChange={({ target }) => {
+                  setUsername(target.value)
+                }}
+              />
+                <TextField.Slot>
+                  <LockClosedIcon height="16" width="16" />
+                </TextField.Slot>
+                <TextField.Input
+                className="flex-1"
+                placeholder="password"
+                type="password"
+                onChange={({ target }) => {
+                  setPassword(target.value)
+                }}
+              />
+            </TextField.Root>
+            <Button size="3" radius="large" variant="surface" onClick={loginBtn}>
             <TextField.Slot>
-              <MagnifyingGlassIcon height="16" width="16" />
-            </TextField.Slot>
-            <TextField.Input
-              className="flex-1"
-              placeholder="Search Persona Template"
-              onChange={({ target }) => {
-                setSearchText(target.value)
-              }}
-            />
-          </TextField.Root>
-          <Button size="3" radius="large" variant="surface" onClick={onOpenPersonaModal}>
-            Create
-          </Button>
-        </Flex>
-      </Container>
-      <ScrollArea className="flex-1" type="auto" scrollbars="vertical">
-        <Container size="3" className="px-4">
-          <Flex direction="column" className="divide-y">
-            {promptList.map((prompt) => (
-              <Flex
-                key={prompt.id}
-                align="center"
-                justify="between"
-                gap="3"
-                py="3"
-                style={{ borderColor: 'var(--gray-a5)' }}
-              >
-                <Box width="100%">
-                  <Text as="p" size="3" weight="bold" className="mb-2">
-                    {prompt.name}
-                  </Text>
-                  <Text as="p" size="2" className="line-clamp-2">
-                    {prompt.prompt || ''}
-                  </Text>
-                </Box>
-                <Flex gap="3">
-                  <IconButton
-                    size="2"
-                    variant="soft"
-                    radius="full"
-                    onClick={() => {
-                      onCreateChat?.(prompt)
-                    }}
-                  >
-                    <LuMessageSquarePlus className="size-4" />
-                  </IconButton>
-                  <IconButton
-                    size="2"
-                    variant="soft"
-                    color="gray"
-                    radius="full"
-                    onClick={() => {
-                      onEditPersona?.(prompt)
-                    }}
-                  >
-                    <AiOutlineEdit className="size-4" />
-                  </IconButton>
-                  <IconButton
-                    size="2"
-                    variant="soft"
-                    color="crimson"
-                    radius="full"
-                    onClick={() => {
-                      onDeletePersona?.(prompt)
-                    }}
-                  >
-                    <AiOutlineDelete className="size-4" />
-                  </IconButton>
-                </Flex>
-              </Flex>
-            ))}
+                <CheckCircledIcon height="16" width="16" />
+              </TextField.Slot>
+            </Button>
           </Flex>
-        </Container>
-      </ScrollArea>
+      </Container>
     </Flex>
   ) : null
 }

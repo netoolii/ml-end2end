@@ -19,4 +19,10 @@ export interface Chat {
   messages?: ChatMessage[]
 }
 
+export interface User {
+  id: string
+  username: string
+  isLogged: boolean
+}
+
 export type ChatRole = 'assistant' | 'user' | 'system'

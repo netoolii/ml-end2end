@@ -2,12 +2,12 @@
 
 set -e
 
-# TAG="$1"
+TAG="$1"
 
 
-# if [[ -z "$TAG" ]]; then
-#    TAG="1.0"
-# fi
+if [[ -z "$TAG" ]]; then
+   TAG="1.0"
+fi
 
 
 NODE_ENV="development" 
@@ -15,9 +15,7 @@ HOST="0.0.0.0"
 CHOKIDAR_USEPOLLING=true
 WATCHPACK_POLLING=true
 
-
-docker build . --target builder -t frontend:1.0 --rm
-
+docker build . --target builder -t frontend:${TAG} --rm
 
 docker run --name frontend \
         -p "3000:3000" \
@@ -29,6 +27,6 @@ docker run --name frontend \
         -v "./app:/app" \
         -v "node_modules:/app/node_modules" \
         --rm \
-        frontend:1.0 \
+        frontend:${TAG} \
         yarn dev
         
