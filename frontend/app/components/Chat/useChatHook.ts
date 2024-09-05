@@ -98,29 +98,56 @@ const useChatHook = () => {
   }
 
   const onChangeChat = useCallback((chat: Chat) => {
-    const oldMessages = chatRef.current?.getConversation() || []
-    const newMessages = messagesMap.current.get(chat.id) || []
-    chatRef.current?.setConversation(newMessages)
-    chatRef.current?.focus()
-    messagesMap.current.set(currentChatRef.current?.id!, oldMessages)
-    currentChatRef.current = chat
-    forceUpdate()
+    const apiUrl = `http://${process.env.BACKEND_HOST}:${process.env.BACKEND_PORT}/${process.env.BACKEND_PATH_CONVERSATION_GET}${chat.id}`
+
+      fetch(apiUrl, {
+        headers: {
+          'User-Agent': 'frontend/3.0.0'
+        },
+        method: 'GET',
+        credentials: 'include',
+      })
+      .then(x => x.json())
+      .then(function(x) {
+        console.log(x)
+        const oldMessages = chatRef.current?.getConversation() || []
+        const newMessages = messagesMap.current.get(chat.id) || []
+        chatRef.current?.setConversation(newMessages)
+        chatRef.current?.focus()
+        messagesMap.current.set(currentChatRef.current?.id!, oldMessages)
+        currentChatRef.current = chat
+        forceUpdate()
+      })
+      .catch(err => console.error('error:' + err));
   }, [])
 
   const onCreateChat = useCallback(
     (persona: Persona) => {
-      const id = uuid()
-      const newChat: Chat = {
-        id,
-        persona: persona
-      }
+      const apiUrl = `http://${process.env.BACKEND_HOST}:${process.env.BACKEND_PORT}/${process.env.BACKEND_PATH_CONVERSATION_CREATE}`
 
-      setChatList((state) => {
-        return [...state, newChat]
+      fetch(apiUrl, {
+        headers: {
+          'User-Agent': 'frontend/3.0.0'
+        },
+        method: 'POST',
+        credentials: 'include',
       })
-
-      onChangeChat(newChat)
-      onClosePersonaPanel()
+      .then(x => x.json())
+      .then(function(x) {
+        const id = x.data.id
+        console.log("id>>>>", id)
+        const newChat: Chat = {
+          id,
+          persona: persona
+        }
+  
+        setChatList((state) => {
+          return [...state, newChat]
+        })
+        onChangeChat(newChat)
+        onClosePersonaPanel()
+      })
+      .catch(err => console.error('error:' + err));
     },
     [setChatList, onChangeChat, onClosePersonaPanel]
   )
@@ -130,16 +157,30 @@ const useChatHook = () => {
   }, [])
 
   const onDeleteChat = (chat: Chat) => {
-    const index = chatList.findIndex((item) => item.id === chat.id)
-    chatList.splice(index, 1)
-    setChatList([...chatList])
-    localStorage.removeItem(`ms_${chat.id}`)
-    if (currentChatRef.current?.id === chat.id) {
-      currentChatRef.current = chatList[0]
-    }
-    if (chatList.length === 0) {
-      onOpenPersonaPanel('chat')
-    }
+    const apiUrl = `http://${process.env.BACKEND_HOST}:${process.env.BACKEND_PORT}/${process.env.BACKEND_PATH_CONVERSATION_DELETE}${chat.id}`
+
+      fetch(apiUrl, {
+        headers: {
+          'User-Agent': 'frontend/3.0.0'
+        },
+        method: 'PATCH',
+        credentials: 'include',
+      })
+      .then(x => x.json())
+      .then(function(x) {
+        const index = chatList.findIndex((item) => item.id === chat.id)
+        chatList.splice(index, 1)
+        setChatList([...chatList])
+        localStorage.removeItem(`ms_${chat.id}`)
+        if (currentChatRef.current?.id === chat.id) {
+          currentChatRef.current = chatList[0]
+        }
+        if (chatList.length === 0) {
+          onOpenPersonaPanel('chat')
+        }
+        onClosePersonaPanel()
+      })
+      .catch(err => console.error('error:' + err));
   }
 
   const onCreatePersona = async (values: any) => {
@@ -214,28 +255,32 @@ const useChatHook = () => {
   }
 
   useEffect(() => {
-    const chatList = (JSON.parse(localStorage.getItem(StorageKeys.Chat_List) || '[]') ||
-      []) as Chat[]
-    const currentChatId = localStorage.getItem(StorageKeys.Chat_Current_ID)
-    if (chatList.length > 0) {
-      const currentChat = chatList.find((chat) => chat.id === currentChatId)
-      setChatList(chatList)
 
-      chatList.forEach((chat) => {
-        const messages = JSON.parse(localStorage.getItem(`ms_${chat?.id}`) || '[]') as ChatMessage[]
-        messagesMap.current.set(chat.id!, messages)
-      })
-
-      onChangeChat(currentChat || chatList[0])
-    } else {
-      onCreateChat(DefaultPersonas[0])
-    }
-
-    return () => {
-      document.body.removeAttribute('style')
-      localStorage.setItem(StorageKeys.Chat_List, JSON.stringify(chatList))
-    }
-  }, [])
+      if (user === undefined){
+        onOpenPersonaPanel?.('chat')
+      }
+      const chatList = (JSON.parse(localStorage.getItem(StorageKeys.Chat_List) || '[]') ||
+        []) as Chat[]
+      const currentChatId = localStorage.getItem(StorageKeys.Chat_Current_ID)
+      if (chatList.length > 0) {
+        const currentChat = chatList.find((chat) => chat.id === currentChatId)
+        setChatList(chatList)
+  
+        chatList.forEach((chat) => {
+          const messages = JSON.parse(localStorage.getItem(`ms_${chat?.id}`) || '[]') as ChatMessage[]
+          messagesMap.current.set(chat.id!, messages)
+        })
+  
+        onChangeChat(currentChat || chatList[0])
+      } else {
+        onCreateChat(DefaultPersonas[0])
+      }
+  
+      return () => {
+        document.body.removeAttribute('style')
+        localStorage.setItem(StorageKeys.Chat_List, JSON.stringify(chatList))
+      }
+    }, [])
 
   useEffect(() => {
     if (currentChatRef.current?.id) {
