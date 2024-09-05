@@ -32,21 +32,33 @@ export interface ChatGPInstance {
 }
 
 const postChatOrQuestion = async (chat: Chat, messages: any[], input: string) => {
-  const url = '/api/chat'
-
+  const header = {
+    'Content-Type': 'application/json',
+    'User-Agent': 'frontend/1.0.0',
+  }
   const data = {
-    prompt: chat?.persona?.prompt,
-    messages: [...messages!],
-    input
+    prompt: input
   }
 
-  return await fetch(url, {
+  let url = `http://${process.env.BACKEND_HOST}:${process.env.BACKEND_PORT}/${process.env.BACKEND_PATH_POST_CREATE}`;
+
+  const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: header,
+    credentials: 'include',
     body: JSON.stringify(data)
   })
+
+  url = `http://${process.env.BACKEND_HOST}:${process.env.BACKEND_PORT}/${process.env.BACKEND_PATH_POST_GET}`;
+
+  if (res.ok){
+    return await fetch(url, {
+      method: 'GET',
+      headers: header,
+      credentials: 'include'
+    })
+  }
+  return res
 }
 
 const Chat = (props: ChatProps, ref: any) => {
@@ -85,35 +97,24 @@ const Chat = (props: ChatProps, ref: any) => {
           const response = await postChatOrQuestion(currentChatRef?.current!, message, input)
 
           if (response.ok) {
-            const data = response.body
+            const json= await response?.json()
+            const arr = json.data
+            const data = arr[arr.length - 1].body
 
             if (!data) {
               throw new Error('No data')
             }
 
-            const reader = data.getReader()
-            const decoder = new TextDecoder('utf-8')
-            let done = false
             let resultContent = ''
 
-            while (!done) {
-              try {
-                const { value, done: readerDone } = await reader.read()
-                const char = decoder.decode(value)
-                if (char) {
-                  setCurrentMessage((state) => {
-                    if (debug) {
-                      console.log({ char })
-                    }
-                    resultContent = state + char
-                    return resultContent
-                  })
-                }
-                done = readerDone
-              } catch {
-                done = true
+            setCurrentMessage((state) => {
+              if (debug) {
+                console.log({ data })
               }
-            }
+              resultContent = state + data
+              return resultContent
+            })
+
             // The delay of timeout can not be 0 as it will cause the message to not be rendered in racing condition
             setTimeout(() => {
               if (debug) {
@@ -130,9 +131,6 @@ const Chat = (props: ChatProps, ref: any) => {
             const result = await response.json()
             if (response.status === 401) {
               conversation.current.pop()
-              location.href =
-                result.redirect +
-                `?callbackUrl=${encodeURIComponent(location.pathname + location.search)}`
             } else {
               toast.error(result.error)
             }
